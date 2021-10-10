@@ -105,12 +105,14 @@ jobs:
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID}" \
               --parameter-overrides ID="$CIRCLE_WORKFLOW_ID"
       - run:
-          name: Use memstash to save backend url
+          name: Get backend ip, save to memstash and inventory.txt
           command: |
             BACKEND_IP=$(aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID}" \
               --output text)
+            echo "${BACKEND_IP}"
+            echo "$BACKEND_IP">> .circleci/ansible/inventory.txt
             curl -H "Content-Type: text/plain" -H "token: ace5d9f0-e9ca-4a29-9850-fbeea796e0d3" --request PUT --data "http://$BACKEND_IP:3030" https://api.memstash.io/values/backend-ip-${CIRCLE_WORKFLOW_ID}
       - run:
           name: Ensure front-end infrastructure exist
