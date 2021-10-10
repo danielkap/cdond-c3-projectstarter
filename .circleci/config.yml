@@ -120,6 +120,30 @@ jobs:
               --tags project=udapeople-frontend \
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID}" \
               --parameter-overrides ID="$CIRCLE_WORKFLOW_ID"  
+
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["1d:ae:92:9a:13:48:c4:00:f7:a6:6b:32:7a:b8:db:05"]
+      - attach workspace:
+          at: .
+      - run:
+          name: Install dependencies
+          working_directory: ./.circleci/ansible
+          command: |
+            apk add --update ansible
+            ansible --version
+      - run:
+          name: Configure server
+          working_directory: ./.circleci/ansible
+          command: |
+            pwd
+            ls
+            ansible-playbook -i inventory.txt configure-server.yml 
+      # Here's where you will add some code to rollback on failure     
       
 
     
@@ -141,3 +165,17 @@ workflows:
           filters:
             branches:
               only: [master]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+  #    - run-migrations:
+  #        requires: [configure-infrastructure]
+  #    - deploy-frontend:
+  #        requires: [run-migrations]
+  #    - deploy-backend:
+  #        requires: [run-migrations]
+  #    - smoke-test:
+  #        requires: [deploy-backend, deploy-frontend]
+  #    - cloudfront-update:
+  #        requires: [smoke-test]
+  #    - cleanup:
+  #        requires: [cloudfront-update]              
